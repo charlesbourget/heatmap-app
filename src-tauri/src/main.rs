@@ -23,7 +23,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             load_fit_files,
             get_available_years,
-            display_data
+            display_data,
+            display_all_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -71,6 +72,20 @@ fn display_data(
     };
 
     println!("display_data -> {}", data.len());
+
+    data
+}
+
+#[tauri::command]
+fn display_all_data(uuid: String, app_state: tauri::State<AppState>) -> Vec<HeatmapDataPoint> {
+    println!("display_all_data[{}]", uuid);
+
+    let data = match heatmap::display_all_data(uuid, app_state) {
+        Ok(data) => data,
+        Err(_) => Vec::new(),
+    };
+
+    println!("display_all_data -> {}", data.len());
 
     data
 }

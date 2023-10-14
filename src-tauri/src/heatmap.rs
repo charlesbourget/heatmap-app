@@ -109,6 +109,25 @@ pub fn display_data(
     Ok(data_points)
 }
 
+pub fn display_all_data(
+    uuid: String,
+    app_state: tauri::State<AppState>,
+) -> Result<Vec<HeatmapDataPoint>, ()> {
+    let exports = app_state.exports.lock().unwrap();
+    let export = exports.get(&Uuid::from_str(&uuid).unwrap()).ok_or(())?;
+    let data_points = export
+        .data
+        .values()
+        .flat_map(|activities| {
+            activities
+                .iter()
+                .flat_map(|activity| activity.heatmap_data_points.clone())
+        })
+        .collect();
+
+    Ok(data_points)
+}
+
 fn parse_dir_entry(dir_entry: Result<DirEntry, Error>) -> Option<Activity> {
     let path = dir_entry.ok()?.path();
     if !path.is_file() {

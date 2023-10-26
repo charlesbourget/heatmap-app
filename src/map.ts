@@ -26,10 +26,11 @@ export class Map {
     );
 
     const cfg = {
-      radius: 0.0005,
-      maxOpacity: 0.8,
+      radius: 0.0004,
+      maxOpacity: 0.6,
       scaleRadius: true,
-      useLocalExtrema: true,
+      blur: 1,
+      useLocalExtrema: false,
     };
 
     const heatmapLayer = new HeatmapOverlay(cfg);

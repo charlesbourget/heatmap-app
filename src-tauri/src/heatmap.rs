@@ -5,26 +5,28 @@ use crate::AppState;
 use chrono::{Datelike, NaiveDateTime};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::fs::DirEntry;
-use std::io::Error;
+use std::fs::{DirEntry, File};
+use std::io::{Error, Read, Write};
+use std::path::Path;
 use std::str::FromStr;
+use std::time::Instant;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Export {
     data: HashMap<i32, Vec<Activity>>,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Activity {
     date_timestamp_s: i64,
     heatmap_data_points: Vec<HeatmapDataPoint>,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct HeatmapDataPoint {
     lat: f64,
     lng: f64,
@@ -59,7 +61,6 @@ impl HeatmapDataPoint {
 }
 
 pub fn load_data(path: String, app_state: tauri::State<AppState>) -> Option<String> {
-    use std::time::Instant;
     let now = Instant::now();
     let paths = fs::read_dir(path).ok()?;
 
@@ -74,7 +75,23 @@ pub fn load_data(path: String, app_state: tauri::State<AppState>) -> Option<Stri
     let mut exports = app_state.exports.lock().unwrap();
     exports.insert(uuid, export);
 
-    println!("Elapsed: {:.2?}", now.elapsed());
+    println!("⚡️ Elapsed: {:.2?}", now.elapsed());
+
+    Some(uuid.to_string())
+}
+
+pub fn load_json_export(path: String, app_state: tauri::State<AppState>) -> Option<String> {
+    let now = Instant::now();
+    let mut file = File::open(path).unwrap();
+    let mut buff = String::new();
+    file.read_to_string(&mut buff).unwrap();
+
+    let uuid = Uuid::new_v4();
+    let export: Export = serde_json::from_str(&buff).unwrap();
+    let mut exports = app_state.exports.lock().unwrap();
+    exports.insert(uuid, export);
+
+    println!("⚡️ Elapsed: {:.2?}", now.elapsed());
 
     Some(uuid.to_string())
 }
@@ -126,6 +143,25 @@ pub fn display_all_data(
         .collect();
 
     Ok(data_points)
+}
+
+pub fn create_json_export(
+    path: String,
+    uuid: String,
+    app_state: tauri::State<AppState>,
+) -> Result<(), ()> {
+    let exports = app_state.exports.lock().unwrap();
+    let export = exports.get(&Uuid::from_str(&uuid).unwrap()).ok_or(())?;
+    let export_string = match serde_json::to_string(export) {
+        Ok(result) => result,
+        Err(_) => return Err(()),
+    };
+
+    let file_path = Path::new(&path).join(format!("{}.json", uuid));
+    let mut file = File::create(file_path).map_err(|_| ())?;
+    write!(file, "{}", export_string).map_err(|_| ())?;
+
+    Ok(())
 }
 
 fn parse_dir_entry(dir_entry: Result<DirEntry, Error>) -> Option<Activity> {

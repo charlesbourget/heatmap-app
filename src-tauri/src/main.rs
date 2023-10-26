@@ -22,6 +22,8 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             load_fit_files,
+            load_json_export,
+            create_json_export,
             get_available_years,
             display_data,
             display_all_data
@@ -42,6 +44,31 @@ fn load_fit_files(path: String, app_state: tauri::State<AppState>) -> String {
     println!("load_fit_files -> {}", uuid);
 
     uuid
+}
+
+#[tauri::command]
+fn load_json_export(path: String, app_state: tauri::State<AppState>) -> String {
+    println!("load_json_export[{}]", path);
+
+    let uuid = match heatmap::load_json_export(path, app_state) {
+        Some(uuid) => uuid,
+        None => String::from(""),
+    };
+
+    println!("load_fit_files -> {}", uuid);
+
+    uuid
+}
+
+#[tauri::command]
+fn create_json_export(path: String, uuid: String, app_state: tauri::State<AppState>) {
+    println!("create_json_export[{}, {}]", uuid, path);
+
+    if heatmap::create_json_export(path, uuid, app_state).is_err() {
+        println!("Error while writing export to file.")
+    }
+
+    println!("create_json_export -> ()");
 }
 
 #[tauri::command]

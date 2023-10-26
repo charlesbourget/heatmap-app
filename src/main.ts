@@ -24,10 +24,22 @@ class App {
       );
     }
 
+    const load_json_file = document.getElementById("load_json_file");
+    if (load_json_file != null) {
+      load_json_file.addEventListener("click", (_: Event) => this.load_json());
+    }
+
     const display = document.getElementById("display");
     if (display != null) {
       display.addEventListener("click", (_: Event) =>
         this.map.display_data(this.exportUuid, this.yearSelection),
+      );
+    }
+
+    const exportToJson = document.getElementById("export_to_json");
+    if (exportToJson != null) {
+      exportToJson.addEventListener("click", (_: Event) =>
+        this.export_to_json(),
       );
     }
   }
@@ -47,6 +59,32 @@ class App {
     }
   }
 
+  private async load_json() {
+    const selectedFile = await open();
+
+    this.spinner.show_spinner();
+    const uuid = <string>(
+      await invoke("load_json_export", { path: selectedFile })
+    );
+
+    if (uuid != null) {
+      this.exportUuid = uuid;
+      this.spinner.hide_spinner();
+      await this.populate_dropdown(uuid);
+    }
+  }
+
+  private async export_to_json() {
+    const selectedFile = await open({
+      directory: true,
+    });
+
+    await invoke("create_json_export", {
+      path: selectedFile,
+      uuid: this.exportUuid,
+    });
+  }
+
   private async populate_dropdown(uuid: string) {
     const availableYears: number[] | null = await invoke(
       "get_available_years",
@@ -54,13 +92,20 @@ class App {
     );
 
     if (availableYears != null) {
+      if (this.yearSelection == null) {
+        return;
+      }
+
+      for (let i = this.yearSelection.options.length - 1; i >= 0; i--) {
+        this.yearSelection.remove(i);
+      }
+
       availableYears.forEach((year) => {
         const option = document.createElement("option");
         option.text = year.toString();
 
-        if (this.yearSelection != null) {
-          this.yearSelection.add(option);
-        }
+        // @ts-ignore
+        this.yearSelection.add(option);
       });
     }
   }

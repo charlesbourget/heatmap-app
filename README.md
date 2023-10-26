@@ -1,7 +1,24 @@
-# Tauri + Vanilla TS
+# Heatmap-app
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Typescript.
+Was tired of paying Strava premium to look at the personnal Heatmap so
+re-created it as a Desktop Application with Tauri (Rust + Ts).
 
-## Recommended IDE Setup
+## How to run
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+### Required
+
+- rust
+- nodejs
+- yarn
+
+### Run dev build
+
+```shell
+yarn tauri dev
+```
+
+### Build production build
+
+```shell
+yarn tauri build
+```

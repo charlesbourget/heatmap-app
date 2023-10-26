@@ -96,7 +96,7 @@ class App {
         return;
       }
 
-      for (let i = this.yearSelection.options.length - 1; i >= 0; i--) {
+      for (let i = this.yearSelection.options.length - 1; i >= 1; i--) {
         this.yearSelection.remove(i);
       }
 

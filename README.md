@@ -22,3 +22,9 @@ yarn tauri dev
 ```shell
 yarn tauri build
 ```
+
+### Data source
+
+Once the application is up and running, you will need a strava export of all your activities in either fit or gpx format.
+To obtain that data you could get it from your Strava Settings page. Once you download that folder, extract it and your activities
+are located in `activities/`.
